@@ -9,7 +9,7 @@ on:
 jobs:
   build-macos:
     # 指定使用 GitHub 免費提供的最新 macOS 虛擬機
-    runs-on: macos-latest
+    runs-on: macos-13
 
     steps:
       - name: 1. 下載儲存庫程式碼
