@@ -1,0 +1,40 @@
+name: Build macOS App
+
+# 設定為手動點擊觸發，或每次修改程式碼時自動觸發
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-macos:
+    # 指定使用 GitHub 免費提供的最新 macOS 虛擬機
+    runs-on: macos-latest
+
+    steps:
+      - name: 1. 下載儲存庫程式碼
+        uses: actions/checkout@v4
+
+      - name: 2. 安裝 Python 與 Tkinter 視窗支援 (透過 Homebrew)
+        run: |
+          brew install python-tk@3.12
+
+      - name: 3. 安裝打包所需套件
+        run: |
+          /opt/homebrew/bin/python3.12 -m pip install --upgrade pip
+          /opt/homebrew/bin/python3.12 -m pip install pyserial matplotlib pyinstaller
+
+      - name: 4. 執行 PyInstaller 打包成 macOS .app
+        run: |
+          /opt/homebrew/bin/python3.12 -m PyInstaller --windowed --onedir --clean -n TEG_DAQ_Mac --collect-all serial teg_power_daq.py
+
+      - name: 5. 將 .app 壓縮為 zip (保留 macOS 執行權限)
+        run: |
+          cd dist
+          ditto -c -k --sequesterRsrc --keepParent TEG_DAQ_Mac.app TEG_DAQ_Mac.zip
+
+      - name: 6. 上傳打包成品供下載
+        uses: actions/upload-artifact@v4
+        with:
+          name: TEG_DAQ_Mac_App
+          path: dist/TEG_DAQ_Mac.zip
